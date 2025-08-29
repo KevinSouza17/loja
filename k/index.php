@@ -11,8 +11,8 @@
          <h1> Bem vindo ao 1º Sistema com CRUD</h1>
          <h2>Kevin Souza</h2>
          <div class="btn-group" role="group" aria-label="Basic mixed styles example">
-            <a href="#" type="button" class="btn btn-danger">cadastrar</a>
-            <a href="#" type="button" class="btn btn-warning">listar</a>
+            <a href="./form_cadastrar.php" type="button" class="btn btn-danger">cadastrar</a>
+            <a href="./listar.php" type="button" class="btn btn-warning">listar</a>
          </div>
     </div>
 
