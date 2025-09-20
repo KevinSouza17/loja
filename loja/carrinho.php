@@ -1,12 +1,10 @@
-<?php include 'cabecalho.php'; 
-
-// Verifica se usuário está logado como cliente
-if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_tipo'] !== 'cliente') {
-    header('Location: login.php');
-    exit;
+<?php
+// Iniciar sessão NO TOPO do arquivo
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
 }
 
-// Processa remoção de item
+// Processar remoção de item do carrinho ANTES de qualquer output
 if (isset($_GET['remover'])) {
     $index = $_GET['remover'];
     if (isset($_SESSION['carrinho'][$index])) {
@@ -17,95 +15,126 @@ if (isset($_GET['remover'])) {
     exit;
 }
 
-// Processa atualização de quantidade
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['atualizar'])) {
+// Processar atualização de quantidades
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['atualizar_carrinho'])) {
     foreach ($_POST['quantidade'] as $index => $quantidade) {
-        if (isset($_SESSION['carrinho'][$index]) && $quantidade > 0) {
-            $_SESSION['carrinho'][$index]['quantidade'] = $quantidade;
+        if (isset($_SESSION['carrinho'][$index])) {
+            $_SESSION['carrinho'][$index]['quantidade'] = max(1, intval($quantidade));
         }
     }
-    header('Location: carrinho.php');
-    exit;
 }
+
+// SÓ DEPOIS inclui o cabeçalho
+include 'cabecalho.php';
+
+$carrinho = isset($_SESSION['carrinho']) ? $_SESSION['carrinho'] : [];
+$total = 0;
 ?>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2><i class="fas fa-shopping-cart me-2"></i>Meu Carrinho</h2>
-    <a href="catalogo.php" class="btn btn-outline-light">
-        <i class="fas fa-arrow-left me-1"></i>Continuar Comprando
-    </a>
-</div>
+<!-- ... restante do código HTML ... -->
 
-<?php if (empty($_SESSION['carrinho'])): ?>
-    <div class="alert alert-info text-center">
-        <i class="fas fa-shopping-cart fa-3x mb-3"></i>
-        <h4>Seu carrinho está vazio</h4>
-        <p>Adicione alguns produtos para começar a comprar!</p>
-        <a href="catalogo.php" class="btn btn-primary">Ver Catálogo</a>
-    </div>
-<?php else: ?>
-    <form method="POST">
-        <div class="card shadow">
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>Produto</th>
-                                <th>Preço</th>
-                                <th>Quantidade</th>
-                                <th>Subtotal</th>
-                                <th>Ação</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php
-                            $total = 0;
-                            foreach ($_SESSION['carrinho'] as $index => $item):
-                                $subtotal = $item['preco'] * $item['quantidade'];
-                                $total += $subtotal;
-                            ?>
-                                <tr>
-                                    <td>
-                                        <strong><?php echo htmlspecialchars($item['nome']); ?></strong><br>
-                                        <small>Tamanho: <?php echo $item['tamanho']; ?> | Cor: <?php echo $item['cor']; ?></small>
-                                    </td>
-                                    <td>R$ <?php echo number_format($item['preco'], 2, ',', '.'); ?></td>
-                                    <td>
-                                        <input type="number" name="quantidade[<?php echo $index; ?>]" 
-                                               value="<?php echo $item['quantidade']; ?>" min="1" class="form-control" style="width: 80px;">
-                                    </td>
-                                    <td>R$ <?php echo number_format($subtotal, 2, ',', '.'); ?></td>
-                                    <td>
-                                        <a href="carrinho.php?remover=<?php echo $index; ?>" class="btn btn-danger btn-sm">
-                                            <i class="fas fa-trash"></i>
-                                        </a>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                        <tfoot>
-                            <tr>
-                                <td colspan="3" class="text-end"><strong>Total:</strong></td>
-                                <td><strong>R$ <?php echo number_format($total, 2, ',', '.'); ?></strong></td>
-                                <td></td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow mb-4">
+            <div class="card-header bg-dark-custom">
+                <h3 class="card-title mb-0"><i class="fas fa-shopping-cart me-2"></i>Meu Carrinho</h3>
             </div>
-            <div class="card-footer">
-                <div class="d-flex justify-content-between">
-                    <button type="submit" name="atualizar" class="btn btn-warning">
-                        <i class="fas fa-sync me-1"></i>Atualizar Carrinho
-                    </button>
-                    <a href="finalizar_compra.php" class="btn btn-success">
-                        <i class="fas fa-check me-1"></i>Finalizar Compra
-                    </a>
-                </div>
+            <div class="card-body">
+                <?php if (empty($carrinho)): ?>
+                    <div class="text-center py-5">
+                        <i class="fas fa-shopping-cart fa-4x text-muted mb-3"></i>
+                        <h4>Seu carrinho está vazio</h4>
+                        <p>Adicione produtos para continuar</p>
+                        <a href="listar.php" class="btn btn-gold">Continuar Comprando</a>
+                    </div>
+                <?php else: ?>
+                    <form method="POST">
+                        <?php foreach ($carrinho as $index => $item): ?>
+                            <?php
+                            $subtotal = $item['preco'] * $item['quantidade'];
+                            $total += $subtotal;
+                            ?>
+                            <div class="cart-item">
+                                <div class="row">
+                                    <div class="col-3">
+                                        <?php if (!empty($item['imagem'])): ?>
+                                            <img src="<?php echo $item['imagem']; ?>" class="img-fluid rounded" alt="<?php echo $item['nome']; ?>">
+                                        <?php else: ?>
+                                            <div class="bg-secondary rounded d-flex align-items-center justify-content-center" style="height: 100px;">
+                                                <i class="fas fa-image fa-2x text-light"></i>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+                                    <div class="col-6">
+                                        <h5><?php echo htmlspecialchars($item['nome']); ?></h5>
+                                        <?php if (!empty($item['tamanho'])): ?>
+                                            <div>Tamanho: <strong><?php echo $item['tamanho']; ?></strong></div>
+                                        <?php endif; ?>
+                                        <?php if (!empty($item['cor'])): ?>
+                                            <div>Cor: <strong><?php echo $item['cor']; ?></strong></div>
+                                        <?php endif; ?>
+                                        <div class="price-tag">R$ <?php echo number_format($item['preco'], 2, ',', '.'); ?></div>
+                                    </div>
+                                    <div class="col-3">
+                                        <div class="input-group mb-2">
+                                            <input type="number" name="quantidade[<?php echo $index; ?>]" value="<?php echo $item['quantidade']; ?>" min="1" class="form-control">
+                                        </div>
+                                        <div class="d-grid">
+                                            <a href="carrinho.php?remover=<?php echo $index; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Remover este item do carrinho?')">
+                                                <i class="fas fa-trash me-1"></i>Remover
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                        
+                        <div class="d-flex justify-content-between mt-3">
+                            <a href="listar.php" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>Continuar Comprando
+                            </a>
+                            <button type="submit" name="atualizar_carrinho" class="btn btn-outline-primary">
+                                <i class="fas fa-sync me-1"></i>Atualizar Carrinho
+                            </button>
+                        </div>
+                    </form>
+                <?php endif; ?>
             </div>
         </div>
-    </form>
-<?php endif; ?>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card shadow">
+            <div class="card-header bg-dark-custom">
+                <h3 class="card-title mb-0"><i class="fas fa-receipt me-2"></i>Resumo do Pedido</h3>
+            </div>
+            <div class="card-body">
+                <?php if (!empty($carrinho)): ?>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal:</span>
+                        <span>R$ <?php echo number_format($total, 2, ',', '.'); ?></span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Frete:</span>
+                        <span>Grátis</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between mb-3">
+                        <strong>Total:</strong>
+                        <strong class="price-tag">R$ <?php echo number_format($total, 2, ',', '.'); ?></strong>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <a href="checkout.php" class="btn btn-gold btn-lg">
+                            <i class="fas fa-check me-2"></i>Finalizar Compra
+                        </a>
+                    </div>
+                <?php else: ?>
+                    <p class="text-muted">Adicione produtos ao carrinho para ver o resumo</p>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+</div>
 
 <?php include 'rodape.php'; ?>

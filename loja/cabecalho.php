@@ -1,3 +1,9 @@
+<?php
+// Iniciar sessão NO TOPO ABSOLUTO do arquivo
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+?>
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -7,129 +13,121 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        :root {
+            --primary-color: #1a1a1a;
+            --secondary-color: #d4af37;
+            --accent-color: #8b4513;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+        }
+        
         body {
-            background-color: #f8f9fa;
-            color: #212529;
+            background-color: #f9f9f9;
+            color: #333;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             padding-top: 20px;
         }
-        .navbar {
-            margin-bottom: 20px;
-            background-color: #000 !important;
+        
+        .navbar-giorno {
+            background-color: var(--primary-color) !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-        .card {
-            background-color: #ffffff;
-            border: 1px solid #dee2e6;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        
+        .navbar-brand {
+            font-weight: 700;
+            color: var(--secondary-color) !important;
+            font-size: 1.8rem;
         }
-        .table {
-            color: #212529;
+        
+        .nav-link {
+            color: #fff !important;
+            font-weight: 500;
+            transition: all 0.3s;
         }
-        .btn-primary {
-            background-color: #000;
-            border-color: #000;
+        
+        .nav-link:hover {
+            color: var(--secondary-color) !important;
         }
-        .btn-primary:hover {
-            background-color: #333;
-            border-color: #333;
+        
+        .btn-gold {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+            color: #000;
+            font-weight: 600;
         }
-        .btn-outline-light {
-            border-color: #000;
+        
+        .btn-gold:hover {
+            background-color: #c19b2e;
+            border-color: #c19b2e;
             color: #000;
         }
-        .btn-outline-light:hover {
-            background-color: #000;
-            color: #fff;
-        }
+        
         .bg-dark-custom {
-            background-color: #000 !important;
-            color: #fff;
+            background-color: var(--primary-color) !important;
+            color: white;
         }
-        .carrinho-badge {
+        
+        .cart-badge {
             position: absolute;
             top: -5px;
             right: -5px;
-            background-color: #dc3545;
-            color: white;
+            background-color: var(--secondary-color);
+            color: black;
             border-radius: 50%;
-            padding: 2px 6px;
-            font-size: 12px;
+            width: 20px;
+            height: 20px;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-dark">
-  <div class="container">
-    <a class="navbar-brand" href="index.php">
-        <i class="fas fa-shirt me-2"></i>Giorno
-    </a>
-    <div class="navbar-nav me-auto">
-      <a class="nav-link" href="index.php">Início</a>
-      <a class="nav-link" href="catalogo.php">Catálogo</a>
-      <?php if (isset($_SESSION['usuario_tipo']) && $_SESSION['usuario_tipo'] === 'admin'): ?>
-        <a class="nav-link" href="form_cadastrar.php">Cadastrar Roupa</a>
-        <a class="nav-link" href="listar.php">Gerenciar Produtos</a>
-      <?php endif; ?>
-    </div>
-    <div class="navbar-nav">
-      <?php if (isset($_SESSION['usuario_id'])): ?>
-        <?php if ($_SESSION['usuario_tipo'] === 'cliente'): ?>
-          <a class="nav-link position-relative" href="carrinho.php">
-            <i class="fas fa-shopping-cart"></i>
-            <?php
-            $total_itens = 0;
-            if (isset($_SESSION['carrinho'])) {
-                foreach ($_SESSION['carrinho'] as $item) {
-                    $total_itens += $item['quantidade'];
-                }
-            }
-            if ($total_itens > 0): ?>
-              <span class="carrinho-badge"><?php echo $total_itens; ?></span>
-            <?php endif; ?>
-          </a>
-        <?php endif; ?>
-        <span class="nav-link">Olá, <?php echo $_SESSION['usuario_nome']; ?></span>
-        <a class="nav-link" href="logout.php">Sair</a>
-      <?php else: ?>
-        <a class="nav-link" href="login.php">Login</a>
-        <a class="nav-link" href="criar_conta.php">Criar Conta</a>
-      <?php endif; ?>
-    </div>
-  </div>
-</nav>
-<div class="container">
-    <!-- ... código anterior ... -->
-<div class="navbar-nav">
-    <?php if (isset($_SESSION['usuario_id'])): ?>
-        <?php if ($_SESSION['usuario_tipo'] === 'cliente'): ?>
-            <a class="nav-link position-relative" href="carrinho.php">
-                <i class="fas fa-shopping-cart"></i>
-                <?php
-                $total_itens = 0;
-                if (isset($_SESSION['carrinho'])) {
-                    foreach ($_SESSION['carrinho'] as $item) {
-                        $total_itens += $item['quantidade'];
-                    }
-                }
-                if ($total_itens > 0): ?>
-                    <span class="carrinho-badge"><?php echo $total_itens; ?></span>
-                <?php endif; ?>
-            </a>
-        <?php endif; ?>
-        
-        <div class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                <i class="fas fa-user me-1"></i><?php echo $_SESSION['usuario_nome']; ?>
-            </a>
-            <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="perfil.php"><i class="fas fa-user me-2"></i>Meu Perfil</a></li>
-                <li><a class="dropdown-item" href="trocar_perfil.php"><i class="fas fa-sync me-2"></i>Trocar Perfil</a></li>
-                <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item" href="logout.php"><i class="fas fa-sign-out-alt me-2"></i>Sair</a></li>
+<nav class="navbar navbar-expand-lg navbar-dark navbar-giorno fixed-top">
+    <div class="container">
+        <a class="navbar-brand" href="inicio.php">GIORNO</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="inicio.php">Início</a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        Categorias
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="listar.php?categoria=masculino">Masculino</a></li>
+                        <li><a class="dropdown-item" href="listar.php?categoria=feminino">Feminino</a></li>
+                        <li><a class="dropdown-item" href="listar.php?categoria=infantil">Infantil</a></li>
+                        <li><a class="dropdown-item" href="listar.php?categoria=acessorios">Acessórios</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="sobre.php">Sobre</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="contato.php">Contato</a>
+                </li>
             </ul>
+            <div class="d-flex">
+                <?php
+                // Verificar quantidade no carrinho (a sessão já foi iniciada)
+                $qtd_carrinho = isset($_SESSION['carrinho']) ? count($_SESSION['carrinho']) : 0;
+                ?>
+                <a href="carrinho.php" class="btn btn-outline-light me-2 position-relative">
+                    <i class="fas fa-shopping-cart"></i>
+                    <?php if ($qtd_carrinho > 0): ?>
+                        <span class="cart-badge"><?php echo $qtd_carrinho; ?></span>
+                    <?php endif; ?>
+                </a>
+                <a href="form_cadastrar.php" class="btn btn-gold"><i class="fas fa-plus me-1"></i>Adicionar Produto</a>
+            </div>
         </div>
-    <?php else: ?>
-        <a class="nav-link" href="login.php">Login</a>
-        <a class="nav-link" href="criar_conta.php">Criar Conta</a>
-    <?php endif; ?>
-</div>
-<!-- ... código posterior ... -->
+    </div>
+</nav>
+<div class="container mt-5 pt-4">
